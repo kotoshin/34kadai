@@ -118,5 +118,33 @@ public class EmployeeService {
         int passwordLength = employee.getPassword().length();
         return passwordLength < 8 || 16 < passwordLength;
     }
+    
+    //授業員更新
+    @Transactional
+    public ErrorKinds update(Employee employee, String code) {
+     // パスワード空白チェック
+        /*
+         * エンティティ側の入力チェックでも実装は行えるが、更新の方でパスワードが空白でもチェックエラーを出さずに
+         * 更新出来る仕様となっているため上記を考慮した場合に別でエラーメッセージを出す方法が簡単だと判断
+         */
+        Employee e= findByCode(code);
+        if ("".equals(employee.getPassword())) {
+            // パスワードが空白だった場合
+            employee.setPassword(e.getPassword());
 
+        }else {
+            ErrorKinds result = employeePasswordCheck(employee);
+            if (ErrorKinds.CHECK_OK != result) {
+                return result;
+            }
+        }
+        employee.setDeleteFlg(e.isDeleteFlg());
+        employee.setCreatedAt(e.getCreatedAt());
+        LocalDateTime now = LocalDateTime.now();
+        employee.setUpdatedAt(now);
+
+        employeeRepository.save(employee);
+        return ErrorKinds.SUCCESS;
+        
+    }
 }
